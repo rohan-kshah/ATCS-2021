@@ -26,7 +26,6 @@ class TicTacToe:
                     row = row + "O "
             
             print(str(r)+ " " + row)
-
     def is_valid_move(self, row, col):
         r = row
         c = col
@@ -50,8 +49,21 @@ class TicTacToe:
         
         self.board[row][col] = player
 
+    def take_random_turn(self, player):
+        row = random.randint(0, 2)
+        col = random.randint(0, 2)
+
+        while not self.is_valid_move(row, col):
+            row = random.randint(0, 2)
+            col = random.randint(0, 2)
+
+        self.board[row][col] = player
+
     def take_turn(self, player):
-        self.take_manual_turn(player)
+        if player == 1:
+            self.take_manual_turn(player)
+        if player == 2:
+            self.take_random_turn(player)
         return
 
     def check_col_win(self, player):
@@ -86,6 +98,7 @@ class TicTacToe:
         return True
 
     def play_game(self):
+
         TicTacToe.print_instructions()
         self.print_board()
 
