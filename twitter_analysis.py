@@ -48,7 +48,6 @@ max_features = 3000
 count_vectorizer = CountVectorizer(max_features=max_features , stop_words= "english")
 x = count_vectorizer.fit_transform(tweets).toarray()
 y = dataV2.iloc[:,0].values
-print(x)
 
 from sklearn.model_selection import train_test_split
 
@@ -77,14 +76,19 @@ print()
 
 print("Accuracy", model.score(x_test, y_test))
 
-#x_pred = ["Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"]
-#x_pred = scaler.transform(x_pred)
+predTweet = "Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"
+predTweet = [convertTweet(predTweet)]
+max_features = 9
+count_vectorizer = CountVectorizer(max_features=max_features , stop_words= "english")
+x_pred = count_vectorizer.fit_transform(predTweet).toarray()
+
+x_pred = scaler.transform(x_pred)
 
 # make and print prediction
-#if model.predict(x_pred)[0] == 1:
-#    print("This customer will buy an SUV.")
-#else:
-#print("This customer will not buy an SUV.")
+if model.predict(x_pred)[0] == 1:
+    print("This tweet is likely from a Democrat.")
+else:
+    print("This tweet is likely from a Republican.")
 
 
 
