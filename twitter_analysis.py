@@ -10,7 +10,6 @@ May 10, 2022
 '''
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import nltk
 import nltk as nlp
 import re
@@ -22,6 +21,9 @@ dataV2.dropna(axis = 0, inplace = True)
 dataV2["Party"].replace(["Democrat", "Republican"], [1, 0], inplace=True)
 
 from nltk.corpus import stopwords
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+sentimentFinder = SentimentIntensityAnalyzer()
+
 
 #create func that turns individual tweet into token and convert etc
 
@@ -38,15 +40,20 @@ def convertTweet(tw):
     return tw
 
 tweets = []
+sentiments = []
 for eachTw in dataV2.Tweet:
+    tweetSentiment = sentimentFinder.polarity_scores(eachTw)
+    sentiments.append(tweetSentiment.get('compound'))
     eachTw = convertTweet(eachTw)
     tweets.append(eachTw)
 
 from sklearn.feature_extraction.text import CountVectorizer
 
-max_features = 3000
-count_vectorizer = CountVectorizer(max_features=max_features , stop_words= "english")
-x = count_vectorizer.fit_transform(tweets).toarray()
+max_feat = 3000
+count_vectorizer = CountVectorizer(max_features=max_feat , stop_words= "english")
+x_vector = count_vectorizer.fit_transform(tweets).toarray()
+x = [[x_vector, sentiments]].values
+
 y = dataV2.iloc[:,0].values
 
 from sklearn.model_selection import train_test_split
@@ -76,11 +83,12 @@ print()
 
 print("Accuracy", model.score(x_test, y_test))
 
+'''
 predTweet = "Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"
 predTweet = [convertTweet(predTweet)]
-max_features = 9
-count_vectorizer = CountVectorizer(max_features=max_features , stop_words= "english")
-x_pred = count_vectorizer.fit_transform(predTweet).toarray()
+max_feat2 = 9
+count_vectorizer2 = CountVectorizer(max_features=max_feat2 , stop_words= "english")
+x_pred = count_vectorizer2.fit_transform(predTweet).toarray()
 
 x_pred = scaler.transform(x_pred)
 
@@ -89,20 +97,6 @@ if model.predict(x_pred)[0] == 1:
     print("This tweet is likely from a Democrat.")
 else:
     print("This tweet is likely from a Republican.")
-
-
-
-
-
-'''
-word2count = {}
-for dates in data:
-    words = nltk.word_tokenize(dates)
-    for word in words:
-        if word not in word2count.keys():
-            word2count[word] = 1
-        else:
-            word2count[word] += 1
 '''
 
 
