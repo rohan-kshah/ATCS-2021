@@ -1,7 +1,5 @@
 '''
-This program will analyze and classify Republican vs. Democrat tweets.
-The program will analyze Republican vs. Democratic tweets to determine
-whether there exists a specific differentiation (word choice, tone, etc.).
+This program will classify Republican vs. Democrat tweets.
 Further, this program will be able to predict a politician’s party based on their tweets.
 
 @RohanShah
@@ -13,10 +11,14 @@ import pandas as pd
 import nltk
 import nltk as nlp
 import re
+import matplotlib.pyplot as plt
 
 data = pd.read_csv("../Data/ExtractedTweets.csv")
+#creating a new dataset without the twitter handles
 dataV2 = pd.concat([data.Party, data.Tweet], axis=1)
 dataV2.dropna(axis = 0, inplace = True)
+
+#replacing the party description with integers in order to be able to classify
 dataV2["Party"].replace(["Democrat", "Republican"], [1, 0], inplace=True)
 
 from nltk.corpus import stopwords
@@ -24,14 +26,14 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 sentimentFinder = SentimentIntensityAnalyzer()
 
 
-#create func that turns individual tweet into token and convert etc
-
+#convertTweet takes an invidual tweet and reduces
+# it to just lowercase important words and then converts it into a token
 def convertTweet(tw):
     tw = re.sub("[^a-zA-Z]"," ",tw)
     tw = tw.lower()
     tw = nltk.word_tokenize(tw)
 
-    #source
+    #http://techflare.blog/how-to-build-sentiment-analysis-with-nltk-and-sciki-learn-in-python/
     tw = [ word for word in tw if not word in set(stopwords.words("english"))]
     lemma = nlp.WordNetLemmatizer()
     tw = [lemma.lemmatize(word) for word in tw]
@@ -41,21 +43,25 @@ def convertTweet(tw):
 tweets = []
 sentiments = []
 for eachTw in dataV2.Tweet:
+    #using nltk's embedded functions to find the polarity scores of a tweet
     tweetSentiment = sentimentFinder.polarity_scores(eachTw)
+    #appending the total polarity score (positive, neutral, negative combined) of a single tweet into a list
     sentiments.append(tweetSentiment.get('compound'))
     eachTw = convertTweet(eachTw)
     tweets.append(eachTw)
 
 from sklearn.feature_extraction.text import CountVectorizer
 
+#creating bag of words model through using CountVectorizer()
+#https://gist.github.com/1fmusic/e88a3e3616a8c76cdf95b3d5521df84a
 max_feat = 3000
 count_vectorizer = CountVectorizer(max_features=max_feat , stop_words= "english")
 x_vector = count_vectorizer.fit_transform(tweets).toarray()
+
 x = x_vector
 y = dataV2.iloc[:,0].values
 
 from sklearn.model_selection import train_test_split
-
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
@@ -64,10 +70,10 @@ from sklearn.metrics import confusion_matrix
 scaler = StandardScaler().fit(x)
 x = scaler.transform(x)
 
-# Split into train and test data
+#Split into train and test data
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
-'''Create Model'''
+'''Create Bag of Words Model'''
 model = LogisticRegression().fit(x_train, y_train)
 
 # Print model info
@@ -84,7 +90,8 @@ sentiments = np.array(sentiments)
 x2 = sentiments
 x2_train, x2_test, y2_train, y2_test = train_test_split(x2, y, test_size = 0.2, random_state = 42)
 x2_train = x2_train.reshape(-1, 1)
-'''Create Model'''
+
+'''Create Sentiment Model'''
 model = LogisticRegression().fit(x2_train, y2_train)
 
 # Print model info
@@ -96,20 +103,18 @@ print(confusion_matrix(y2_test, y2_pred))
 print()
 
 print("Accuracy for model with sentiment", model.score(x2_test, y2_test))
-'''
-predTweet = "Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"
-predTweet = [convertTweet(predTweet)]
-max_feat2 = 9
-count_vectorizer2 = CountVectorizer(max_features=max_feat2 , stop_words= "english")
-x_pred = count_vectorizer2.fit_transform(predTweet).toarray()
 
+# Make a new prediction
+importTweet = str(input("What is the tweet you would like to be classified?\n"))
+
+tweetSentiment = sentimentFinder.polarity_scores(importTweet)
+x_pred = np.array([tweetSentiment.get('compound')])
+
+x_pred = x_pred.reshape(-1, 1)
 x_pred = scaler.transform(x_pred)
 
-# make and print prediction
+# make and print prediction using sentiment model
 if model.predict(x_pred)[0] == 1:
     print("This tweet is likely from a Democrat.")
 else:
     print("This tweet is likely from a Republican.")
-'''
-
-
