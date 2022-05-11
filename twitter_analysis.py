@@ -103,18 +103,3 @@ print(confusion_matrix(y2_test, y2_pred))
 print()
 
 print("Accuracy for model with sentiment", model.score(x2_test, y2_test))
-
-# Make a new prediction
-importTweet = str(input("What is the tweet you would like to be classified?\n"))
-
-tweetSentiment = sentimentFinder.polarity_scores(importTweet)
-x_pred = np.array([tweetSentiment.get('compound')])
-
-x_pred = x_pred.reshape(-1, 1)
-x_pred = scaler.transform(x_pred)
-
-# make and print prediction using sentiment model
-if model.predict(x_pred)[0] == 1:
-    print("This tweet is likely from a Democrat.")
-else:
-    print("This tweet is likely from a Republican.")
