@@ -17,7 +17,6 @@ import re
 data = pd.read_csv("../Data/ExtractedTweets.csv")
 dataV2 = pd.concat([data.Party, data.Tweet], axis=1)
 dataV2.dropna(axis = 0, inplace = True)
-
 dataV2["Party"].replace(["Democrat", "Republican"], [1, 0], inplace=True)
 
 from nltk.corpus import stopwords
@@ -52,13 +51,11 @@ from sklearn.feature_extraction.text import CountVectorizer
 max_feat = 3000
 count_vectorizer = CountVectorizer(max_features=max_feat , stop_words= "english")
 x_vector = count_vectorizer.fit_transform(tweets).toarray()
-x = [[x_vector, sentiments]].values
-
+x = x_vector
 y = dataV2.iloc[:,0].values
 
 from sklearn.model_selection import train_test_split
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 42)
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
@@ -81,8 +78,24 @@ print("Confusion Matrix:")
 print(confusion_matrix(y_test, y_pred))
 print()
 
-print("Accuracy", model.score(x_test, y_test))
+print("Accuracy for model based on bag-of-words", model.score(x_test, y_test))
 
+sentiments = np.array(sentiments)
+x2 = sentiments
+x2_train, x2_test, y2_train, y2_test = train_test_split(x2, y, test_size = 0.2, random_state = 42)
+x2_train = x2_train.reshape(-1, 1)
+'''Create Model'''
+model = LogisticRegression().fit(x2_train, y2_train)
+
+# Print model info
+coef = model.coef_[0]
+x2_test = x2_test.reshape(-1, 1)
+y2_pred = model.predict(x2_test)
+print("Confusion Matrix:")
+print(confusion_matrix(y2_test, y2_pred))
+print()
+
+print("Accuracy for model with sentiment", model.score(x2_test, y2_test))
 '''
 predTweet = "Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"
 predTweet = [convertTweet(predTweet)]
