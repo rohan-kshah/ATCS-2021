@@ -23,27 +23,31 @@ dataV2["Party"].replace(["Democrat", "Republican"], [1, 0], inplace=True)
 
 from nltk.corpus import stopwords
 
-tweets = []
-for eachTw in dataV2.Tweet:
-    eachTw = re.sub("[^a-zA-Z]"," ",eachTw)
-    eachTw = eachTw.lower()
-    eachTw = nltk.word_tokenize(eachTw)
+#create func that turns individual tweet into token and convert etc
+
+def convertTweet(tw):
+    tw = re.sub("[^a-zA-Z]"," ",tw)
+    tw = tw.lower()
+    tw = nltk.word_tokenize(tw)
 
     #source
-    eachTw = [ word for word in eachTw if not word in set(stopwords.words("english"))]
+    tw = [ word for word in tw if not word in set(stopwords.words("english"))]
     lemma = nlp.WordNetLemmatizer()
-    eachTw = [lemma.lemmatize(word) for word in eachTw]
-    eachTw = " ".join(eachTw)
+    tw = [lemma.lemmatize(word) for word in tw]
+    tw = " ".join(tw)
+    return tw
 
+tweets = []
+for eachTw in dataV2.Tweet:
+    eachTw = convertTweet(eachTw)
     tweets.append(eachTw)
 
 from sklearn.feature_extraction.text import CountVectorizer
 
-max_features = 5000
+max_features = 3000
 count_vectorizer = CountVectorizer(max_features=max_features , stop_words= "english")
-sparce_matrix = count_vectorizer.fit_transform(tweets).toarray()
+x = count_vectorizer.fit_transform(tweets).toarray()
 y = dataV2.iloc[:,0].values
-x = sparce_matrix
 print(x)
 
 from sklearn.model_selection import train_test_split
@@ -73,14 +77,14 @@ print()
 
 print("Accuracy", model.score(x_test, y_test))
 
-x_pred = ["Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"]
-x_pred = scaler.transform(x_pred)
+#x_pred = ["Representatives of the Women’s Mining Coalition visited my office today! We discussed mining issues"]
+#x_pred = scaler.transform(x_pred)
 
 # make and print prediction
-if model.predict(x_pred)[0] == 1:
-    print("This customer will buy an SUV.")
-else:
-    print("This customer will not buy an SUV.")
+#if model.predict(x_pred)[0] == 1:
+#    print("This customer will buy an SUV.")
+#else:
+#print("This customer will not buy an SUV.")
 
 
 
